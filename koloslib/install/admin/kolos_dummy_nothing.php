@@ -1,0 +1,1 @@
+<?php require($_SERVER["DOCUMENT_ROOT"]."/bitrix/modules/kolos_dummy/admin/kolos_dummy_nothing.php");?>

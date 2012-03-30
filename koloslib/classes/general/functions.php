@@ -1,0 +1,699 @@
+<?php
+/**
+ * \file functions.php
+ * В файле находятся различные полезные функции
+ * Файл проекта kolos-cms.
+ *
+ * Создан 29.06.2009
+ *
+ * \author blade39 <blade39@kolosstudio.ru>
+ * \version 1.0
+ * \todo
+ */
+/**
+ * Данная функция преобразует текст из кодировки win-1251 в UTF-8
+ */
+function win2utf($s)    {
+   for($i=0, $m=strlen($s); $i<$m; $i++)    {
+       $c=ord($s[$i]);
+       if ($c<=127) {$t.=chr($c); continue; }
+       if ($c>=192 && $c<=207)    {$t.=chr(208).chr($c-48); continue; }
+       if ($c>=208 && $c<=239) {$t.=chr(208).chr($c-48); continue; }
+       if ($c>=240 && $c<=255) {$t.=chr(209).chr($c-112); continue; }
+       if ($c==184) { $t.=chr(209).chr(209); continue; };
+            if ($c==168) { $t.=chr(208).chr(129);  continue; };
+            if ($c==184) { $t.=chr(209).chr(145); continue; }; #ё
+            if ($c==168) { $t.=chr(208).chr(129); continue; }; #Ё
+            if ($c==179) { $t.=chr(209).chr(150); continue; }; #і
+            if ($c==178) { $t.=chr(208).chr(134); continue; }; #І
+            if ($c==191) { $t.=chr(209).chr(151); continue; }; #ї
+            if ($c==175) { $t.=chr(208).chr(135); continue; }; #ї
+            if ($c==186) { $t.=chr(209).chr(148); continue; }; #є
+            if ($c==170) { $t.=chr(208).chr(132); continue; }; #Є
+            if ($c==180) { $t.=chr(210).chr(145); continue; }; #ґ
+            if ($c==165) { $t.=chr(210).chr(144); continue; }; #Ґ
+            if ($c==184) { $t.=chr(209).chr(145); continue; }; #Ґ
+   }
+   return $t;
+}
+
+/**
+ * Функция конвертирует десятичное число в число с любым основанием
+ * http://ru2.php.net/manual/en/function.base-convert.php#52450
+ */
+function dec2any( $num, $base=62, $index=false ) {
+    if (! $base ) {
+        $base = strlen( $index );
+    } else if (! $index ) {
+        $index = substr( "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ" ,0 ,$base );
+    }
+    $out = "";
+    for ( $t = floor( log10( $num ) / log10( $base ) ); $t >= 0; $t-- ) {
+        $a = floor( $num / pow( $base, $t ) );
+        $out = $out . substr( $index, $a, 1 );
+        $num = $num - ( $a * pow( $base, $t ) );
+    }
+    return $out;
+}
+
+function String2Time($str)
+{
+	if(preg_match('#([0-9]{2,2})\.([0-9]{2,2})\.([0-9]{4,4}) ([0-9]{2,2}):([0-9]{2,2})#',$str,$time))
+		return mktime(intval($time[4]),intval($time[5]),0,intval($time[2]),intval($time[1]),intval($time[3]));
+	return false;
+}
+
+function hex2bin($num)
+{
+	$arBins=array(
+		'0'=>'0000',
+		'1'=>'0001',
+		'2'=>'0010',
+		'3'=>'0011',
+		'4'=>'0100',
+		'5'=>'0101',
+		'6'=>'0110',
+		'7'=>'0111',
+		'8'=>'1000',
+		'9'=>'1001',
+		'a'=>'1010',
+		'b'=>'1011',
+		'c'=>'1100',
+		'd'=>'1101',
+		'e'=>'1110',
+		'f'=>'1111',
+	);
+	$len = strlen( $num ) - 1;
+    for ( $t = 0; $t <= $len; $t++ )
+        $out = $out.$arBins[substr($num,$t,1 )];
+   	return $out;
+}
+
+function any2dec( $num, $base=62, $index=false ) {
+    if (! $base ) {
+        $base = strlen( $index );
+    } else if (! $index ) {
+        $index = substr( "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ", 0, $base );
+    }
+    $out = 0;
+    $len = strlen( $num ) - 1;
+    for ( $t = 0; $t <= $len; $t++ ) {
+        $out = $out + strpos( $index, substr( $num, $t, 1 ) ) * pow( $base, $len - $t );
+    }
+    return $out;
+}
+
+function pre_print($variable)
+{
+	echo "<pre>";
+	print_r($variable);
+	echo "</pre>";
+}
+
+/**
+Функция выполняет вывод значения переменной и выполняет остановку выполнения скрипта
+*/
+function debugStop($var)
+{
+	pre_print($var);
+	die();
+}
+
+/**
+ * Функция преобразования цвета hsv в rgb
+ * Исходный код http://code.activestate.com/recipes/576554/
+ * Исходный язык - python
+ * Параметры
+ * $h - цвет 0-360
+ * $s - интенсивность 0-1
+ * $v - яркость 0-1
+ */
+function hsv2rgb($h,$s=false,$v=false)
+{
+	if(is_array($h))
+	{
+		$s=$h[1];
+		$v=$h[2];
+		$h=$h[0];
+	}
+	$hi = floor($h/60)%6;
+    $f = ($h/60) - floor($h/60);
+    $p = $v * (1 - $s);
+    $q = $v * (1 - ($f*$s));
+    $t = $v * (1 - ((1 - $f) * $s));
+    $arResult=array(
+    	array('r'=>$v, 'g'=>$t, 'b'=>$p),
+    	array('r'=>$q, 'g'=>$v, 'b'=>$p),
+    	array('r'=>$p, 'g'=>$v, 'b'=>$t),
+    	array('r'=>$p, 'g'=>$q, 'b'=>$v),
+    	array('r'=>$t, 'g'=>$p, 'b'=>$v),
+    	array('r'=>$v, 'g'=>$p, 'b'=>$q)
+    );
+    return $arResult[$hi];
+}
+
+/**
+ * Функция приобразует html цвет в rgb массив.
+ */
+function html2rgb($html)
+{
+	if(preg_match('#\#?([0-9a-f]{2,2})([0-9a-f]{2,2})([0-9a-f]{2,2})#i',$html,$matches))
+	{
+		$r=hexdec($matches[1])/65536;
+		$g=hexdec($matches[2])/65536;
+		$b=hexdec($matches[3])/65536;
+	}
+	else
+	{
+		$r=0;$g=0;$b=0;
+	}
+	return array('r'=>$r,'g'=>$g,'b'=>$b);
+}
+
+/**
+ * Функция преобразования цвета rgb в hsv
+ * Исходный код http://code.activestate.com/recipes/576554/
+ * Исходный язык - python
+ * Параметры
+ * $r - красный 0-1
+ * $g - зеленый 0-1
+ * $b - голубой 0-1
+ */
+function rgb2hsv($r,$g=false,$b=false)
+{
+	if(!is_array($r)&&is_string($r)&&($g===false))
+	{
+		if(preg_match('#\#?([0-9a-f]{2,2})([0-9a-f]{2,2})([0-9a-f]{2,2})#i',$r,$matches))
+		{
+			$r=hexdec($matches[1])/65536;
+			$g=hexdec($matches[2])/65536;
+			$b=hexdec($matches[3])/65536;
+		}
+		else
+		{
+			return array(0,0,0);
+		}
+	}
+	elseif(is_array($r))
+	{
+		$g=$r[1];
+		$b=$r[2];
+		$r=$r[0];
+	}
+	$maxc = max($r, $g, $b);
+    $minc = min($r, $g, $b);
+    $colorMap =array(
+    	$r=>'r',
+    	$g=>'g',
+    	$b=>'b',
+    );
+
+    if((($maxc==$minc)&&$maxc==$r)||
+    	(($maxc==$minc)&&$maxc==$g)||
+    	(($maxc==$minc)&&$maxc==$b))
+        $h = 0;
+    elseif($maxc == $r)
+        $h = 60 * (($g - $b) / ($maxc - $minc)) % 360;
+    elseif($maxc == $g)
+        $h = 60 * (($b - $r) / ($maxc - $minc)) + 120;
+    elseif($maxc == $b)
+        $h = 60 * (($r - $g) / ($maxc - $minc)) + 240;
+    $v = $maxc;
+    if ($maxc == 0)
+        $s = 0;
+    else
+        $s = 1 - ($minc / $maxc);
+    return array($h, $s, $v);
+}
+
+/**
+ * Функция проверяет, является ли указанная строка адресом электронной почты
+ */
+function IsEmail($email)
+{
+	return preg_match('#^[a-z\.0-9\-_]+@[a-z0-9\-_]+\.[a-z]+$#i',$email);
+}
+
+/**
+ * Функция проверяет является ли строка url адресом;
+ */
+function IsUrl($url, $with_http = true){
+	$http = ($with_http) ? "http:\/\/" : '';
+	return preg_match("#^".$http."(\w+\.){1,}(\w){2,}#mi", $url);
+}
+
+/**
+ * Функция проверяет является ли строка текстовым идентификатором;
+ */
+function IsTextIdent($str)
+{
+	return preg_match('#^[a-z0-9\-_]+$#i',$str);
+}
+
+/**
+ * Функция проверяет является ли введенная строка именем файла в формате системы
+ */
+function IsFilename($str)
+{
+	return preg_match('#^[a-z0-9\-_.]+$#i',$str);
+}
+
+function IsIp($ip){
+	//проверим длину и вхождение посторонних символов
+	if(strlen($ip)<7 || preg_match("#[^0-9\.]+#mi",$ip))return false;
+	//разобьем на части
+	$ip = explode('.', $ip);
+	//проверим сколько кусков получилось
+	if(count($ip)<4)return false;
+	if(in_array('',$ip))return false;
+	//проверим значения(IPv6 не рассматриваем)
+	if($ip[0] == 0 || $ip[0] >= 255 || $ip[3] == 0 || $ip[3] >= 255 || $ip[1] >= 255 || $ip[2] >= 255) return false;
+	return true;
+}
+
+/**
+ * Функция формирует переменную для записи в файл
+ */
+function OutputVar($var, $value, $tabs_count = 0)
+{
+	$tabs = "";
+	$tabs_count = intval($tabs_count);
+	if ($tabs_count > 0)
+		$tabs = str_repeat("\t", $tabs_count);
+
+	if (!is_array($value))
+		return $tabs . "'" . $var . "' => \"" . $value . "\"";
+
+	$output = $tabs . "'" . $var . "' => array\n";
+	$output .= $tabs . "(\n";
+	if (count($value) > 0)
+	{
+		$var_number = 0;
+		foreach ($value as $array_var => $array_value)
+		{
+			$var_number++;
+			$output .= OutputVar($array_var, $array_value, $tabs_count + 1);
+			if ($var_number < count($value))
+				$output .= ",";
+			$output .= "\n";
+		}
+	}
+	$output .= $tabs . ")";
+	return $output;
+}
+
+/**
+ * Функция сохраняет массив данных в файл
+ * @param $filename - имя файла куда писать переменную
+ * @param $varname - имя переменной в файле
+ * @param $data - значение переменной
+ */
+function SaveToFile($filename,$varname,$data)
+{
+	$result = "<?php\n\n";
+	$result .= "/**\n";
+	$result .= " * Автоматически созданный файл\n";
+	$result .= " * Последнее изменение: " . date("d.m.Y, H:i:s", time()) . "\n";
+	$result .= " */\n\n";
+
+	/* Запись конфигурационного массива */
+	$var_number = 0;
+	$result .= "$varname = array\n";
+	$result .= "(\n";
+	foreach ($data as $key => $value)
+	{
+		$var_number++;
+  		$result .= OutputVar($key, $value, 1);
+  		if ($var_number < count($data))
+			$result .= ",";
+		$result .= "\n";
+  	}
+  	$result .= ");\n";
+	$result .= "\n?>";
+	$path=dirname($filename);
+	if(!file_exists($path))
+	{
+		if(!@mkdir($path,0755,true))
+		{
+			throw new CKSError("SYSTEM_DIR_CREATE_ERROR",1,$path);
+		}
+	}
+	$size = @file_put_contents($filename, $result);
+	if ($size == 0)
+		throw new CKSError("SYSTEM_FILE_WRITE_ERROR",0);
+}
+
+/**
+ * Функция возвращает максимальное количество памяти доступное скрипту
+ */
+function GetMaxMemory()
+{
+	$val=ini_get('memory_limit');
+    $val = trim($val);
+    $last = strtolower($val[strlen($val)-1]);
+    switch($last) {
+        // The 'G' modifier is available since PHP 5.1.0
+        case 'g':
+            $val *= 1024;
+        case 'm':
+            $val *= 1024;
+        case 'k':
+            $val *= 1024;
+    }
+
+    return $val;
+}
+
+/**
+ * Функция урезает урл к странице
+ */
+function ShorterUrl($full_url,$length=50)
+{
+	$side_length=round(($length-3)/2);
+	$full_url_length = strlen($full_url);
+	if ($full_url_length > $side_length * 2)
+		$short_url = substr($full_url, 0, $side_length) . "..." . substr($full_url, $full_url_length - $side_length, $side_length);
+	else
+		$short_url = $full_url;
+	return $short_url;
+}
+
+/**
+ * Функция выполняет транслитерацию переданной строки.
+ * \param $input входная строка требующая транслитерации.
+ * \param $is_filename является ли переданная строка именем файла
+ * \return строку где все русские буквы заменены на латинские эквиваленты.
+ */
+
+function Translit($input, $is_filename = false)
+{
+	$arBad=array(
+		"!",
+		"^",
+		"%",
+		"#",
+		"@",
+		"&",
+		"*",
+		"?",
+		",",
+		":",
+		"`",
+		"=",
+		"\\",
+		"/",
+		">",
+		"<",
+		"|",
+		"'"
+	);
+	$arLetters=Array("а"=>"a",
+					 "б"=>"b",
+					 "в"=>"v",
+					 "г"=>"g",
+					 "д"=>"d",
+					 "е"=>"e",
+					 "ё"=>"yo",
+					 "ж"=>"zh",
+					 "з"=>"z",
+					 "и"=>"i",
+					 "й"=>"ji",
+					 "к"=>"k",
+					 "л"=>"l",
+					 "м"=>"m",
+					 "н"=>"n",
+					 "о"=>"o",
+					 "п"=>"p",
+					 "р"=>"r",
+					 "с"=>"s",
+					 "т"=>"t",
+					 "у"=>"u",
+					 "ф"=>"f",
+					 "х"=>"h",
+					 "ц"=>"ts",
+					 "ч"=>"ch",
+					 "ш"=>"sh",
+					 "щ"=>"sch",
+					 "ь"=>"",
+					 "ы"=>"y",
+					 "ъ"=>"",
+					 "э"=>"e",
+					 "ю"=>"yu",
+					 "я"=>"ya",
+					 " "=>"_",
+					 "("=>"_",
+					 ")"=>"_");
+	if (!$is_filename)
+		$arLetters["."] = "_";
+	return str_replace(array_keys($arLetters),array_values($arLetters),str_replace($arBad,"",mb_strtolower($input,'UTF-8')));
+}
+
+/**
+ * Функция проверяет строку на пустоту.
+ * @todo Определить пустоту точнее
+ */
+function IsEmpty($item)
+{
+	return $item=='';
+}
+
+/**
+ * Обертка для функции htmlspecialchars
+ */
+function EscapeHTML($sHtml)
+{
+	return htmlspecialchars($sHtml,ENT_QUOTES,'utf-8',true);
+}
+
+function ShorterString($sString,$length)
+{
+	return mb_substr($sString,0,$length,'utf-8');
+}
+
+/**
+ * Функция конвертирует ip адрес в целое число
+ */
+function IPtoInt($ip)
+{
+	if(is_string($ip))
+	{
+		$iResult=0;
+		$arIp=explode('.',$ip);
+		if(count($arIp)==4)
+		{
+			$arIp[0]=$arIp[0]*16777216;
+			$arIp[1]=$arIp[1]*65536;
+			$arIp[2]=$arIp[2]*256;
+			return array_sum($arIp);
+		}
+		return 0;
+	}
+	return 0;
+}
+
+/**
+ * Функция определяет тип файла, использует консольную команду file
+ */
+function KSGetFileType($sFile)
+{
+	$query="file --mime-type -b ".$sFile;
+	exec($query,$arLines,$iCode);
+	if(is_array($arLines) && count($arLines)>0)
+	{
+		return trim($arLines[0]);
+	}
+	return '';
+}
+
+/**
+ * Функция генерирует описание файла
+ */
+function GenFileArray($sFile)
+{
+	$arFile=array(
+		'name'=>basename($sFile),
+		'type'=>GetFileType($sFile),
+		'size'=>filesize($sFile),
+		'tmp_name'=>$sFile,
+		'error'=>UPLOAD_ERR_OK
+	);
+	return $arFile;
+}
+
+/**
+ * Функция очишает массив от пустых элементов, в качестве аргумента принимает массив
+ */
+function ClearArray($ar)
+{
+	return array_filter($ar,'IsEmpty');
+}
+
+/**
+ * Функция преобразует дату время в тектовый формат
+ */
+function KSDateFormat($sDate)
+{
+	if(is_numeric($sDate)) $val=date('d.m.Y H:i',$sDate);
+	else $val=$sDate;
+	$val=explode(' ',$val);
+	$arDate=explode('.',$val[0]);
+	$arMonthes=array(
+		'января',
+		'февраля',
+		'марта',
+		'апреля',
+		'мая',
+		'июня',
+		'июля',
+		'августа',
+		'сентября',
+		'октября',
+		'ноября',
+		'декабря',
+	);
+	return $arDate[0].' '.$arMonthes[$arDate[1]-1].' '.$arDate[2];
+}
+
+/**
+ * Функция добавляет пользователя в проект
+ */
+function AddToProject($user_id,$project_id)
+{
+	if(!CModule::IncludeModule('iblock')) return false;
+	$arFilter = Array(
+		"IBLOCK_ID"=>2,
+		"ID"=>intval($project_id),
+	);
+	$res = CIBlockElement::GetList(false, $arFilter, false, Array("nTopCount"=>1));
+	if($ob = $res->GetNextElement())
+	{
+		$arResult = $ob->GetFields();
+		$arResult['PROPERTIES']=$ob->GetProperties();
+		if(in_array($user_id,$arResult['PROPERTIES']['FAVORITES']['VALUE']))
+		{
+			return true;
+		}
+		//Вроде не входит в список пользователей, значит надо добавить
+		$arValues=$arResult['PROPERTIES']['FAVORITES']['VALUE'];
+		if(!is_array($arValues)) $arValues=array();
+		$arValues[]=$user_id;
+		CIBlockElement::SetPropertyValues($arResult['ID'], 2, $arValues, 'FAVORITES');
+		return true;
+	}
+	return false;
+}
+
+/**
+ * Функция проверяет ялвяется ли введённое имя именем
+ */
+function IsName($sString)
+{
+	return preg_match('#^[АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЭЮЯабвгдеёжзийклмнопрстуфхцчшщъыьэюяa-zA-Z\-\. ]+$#iu',$sString);
+}
+
+function SpellAmount($val,$sEnds=false)
+{
+	$arEnds=array(
+		'1'=>'',
+		'2-5'=>'а',
+		'def'=>'ов'
+	);
+	if(is_string($sEnds))
+	{
+		$arEndsTmp=explode(',',$sEnds);
+		$arEnds=array(
+			'1'=>$arEndsTmp[0],
+			'2-5'=>$arEndsTmp[1],
+			'def'=>$arEndsTmp[2]
+		);
+	}
+	if($val>1000000) $val=$val%1000000;
+	if($val>100000) $val=$val%100000;
+	if($val>10000) $val=$val%10000;
+	if($val>1000) $val=$val%1000;
+	if($val>100) $val=$val%100;
+	if($val==0) return $arEnds['def'];
+	if($val==1) return $arEnds['1'];
+	if($val<20)
+	{
+		if($val<5) return $arEnds['2-5'];
+		else return $arEnds['def'];
+	}
+	else
+	{
+		$minor=$val%10;
+		if($minor==1) return $arEnds['1'];
+		if($minor==0) return $arEnds['def'];
+		if($minor<5) return $arEnds['2-5'];
+	}
+	return $arEnds['def'];
+}
+
+/**
+ * Функция прописывает рубли и копейки
+ */
+function SpellMoney($val,$bShort=false)
+{
+	$val=str_replace(',','.',$val);
+	$arMoney=explode('.',$val);
+	$sResult='';
+	if($bShort)
+	{
+		if($arMoney[0]>0)
+			$sResult.=number_format($arMoney[0],0,',',' ').' р. ';
+		if($arMoney[1]>0)
+			$sResult.=$arMoney[1].' к.';
+		if($val==0)
+			$sResult='0 р.';
+	}
+	else
+	{
+		if($arMoney[0]>0)
+			$sResult.=$arMoney[0].' рубл'.SpellAmount($arMoney[0],'ь,я,ей').' ';
+		if($arMoney[1]>0)
+			$sResult.=$arMoney[1].' копе'.SpellAmount($arMoney[1],'йка,йки,ек');
+	}
+	return $sResult;
+}
+
+function CountDays($obDateNow,$obDateEnd)
+{
+	if(PHP_VERSION>'5.3')
+	{
+		//Нормальный пхп
+		$obDiff=$obDateEnd->diff($obDateNow);
+		$iDays=intval($obDiff->format('%d'));
+	}
+	else
+	{
+		//Старый пхп
+		$iEnd=$obDateEnd->Format('U');
+		$iNow=$obDateNow->Format('U');
+		$iDiff=$iEnd-$iNow;
+		$iDays=round($iDiff/86400);
+	}
+	return $iDays;
+}
+
+function CutString($string, $maxlen) {
+    $len = (mb_strlen($string) > $maxlen) ? mb_strripos(mb_substr($string, 0, $maxlen), ' ') : $maxlen;
+    $cutStr = mb_substr($string, 0, $len);
+    return (mb_strlen($string) > $maxlen) ? '' . $cutStr . '...' : '' . $cutStr . '';
+}
+
+/**
+ * Функция генерирует имя пользователя на основании данных из массива его описания
+ */
+function MakeUserName($arUser)
+{
+	$sResult='';
+	if($arUser['LAST_NAME']!='')
+		$sResult.=$arUser['LAST_NAME'].' ';
+	if($arUser['NAME']!='')
+		$sResult.=$arUser['NAME'].' ';
+	if($arUser['SECOND_NAME']!='')
+		$sResult.=$arUser['SECOND_NAME'];
+	if($sResult=='')
+		$sResult=$arUser['LOGIN'];
+	return $sResult;
+}
